@@ -1,0 +1,2 @@
+# Maze-Project
+This is a project I completed for my Data Structure/Algorithm Analysis class. I was tasked with building a maze that would solve itself using a recursive algorithm. The user can pick a free space (a "0") in the maze, and the maze would try to find a path to "E", the exit if the borders (the "1's") didn't block all the paths to "E" depending on the user's starting position. This project exemplifies my knowledge of algorithms, classes, objects, and data structures (linked lists).
