@@ -19,7 +19,7 @@ public class Main {
       * This class will be used to made locations that will be added and dropped
       * from a linked list so that the maze can be traversed.
       */
-     static class Location {
+       static public class Location {
         private int row;
         private int col;
         /**
@@ -82,12 +82,14 @@ public class Main {
         private final char [][] mazeLoc = new char [30][20];
         private int [][] coordinates = new int [31][21];
         LinkedList path = new LinkedList();
+        static private int count;
 
         /**
          * Starts maze
          */
         public Maze() 
         {
+            count = 0;
             intializeMaze();
             doMaze();
         }
@@ -98,7 +100,7 @@ public class Main {
          * selects no, the program will end; if not the user will be asked to 
          * enter a location.
          */
-        final public void intializeMaze() 
+        public void intializeMaze() 
         {
         coordinates = makeCoordinates(31,21);
         char choice;
@@ -115,19 +117,19 @@ public class Main {
            System.out.println("Error processing file: " + p);
        }
 
-        for (int f = 0; f <= 30; f++){ //prints two dimensinal array
-            for (int g = 0; g <= 20; g++){
+        for (int row = 0; row <= 30; row++){ //prints two dimensinal array
+            for (int col = 0; col <= 20; col++){
 
-                if (g == 0){
+                if (col == 0){
                     System.out.println();
                 }
 
-                if ((f == 0 && g >= 0) || (g == 0 && f >= 1))
+                if ((row == 0 && col >= 0) || (col == 0 && row >= 1))
                 {
-                    System.out.format("%4d", coordinates[f][g]);
+                    System.out.format("%4d", coordinates[row][col]);
                 }
-                else if (f > 0 && g > 0)
-                System.out.format("%4c", mazeLoc[f-1][g-1]);    
+                else if (row > 0 && col > 0)
+                System.out.format("%4c", mazeLoc[row-1][col-1]);    
             }
         }
 
@@ -138,7 +140,7 @@ public class Main {
          * This method inquires whether the user wants to start the maze. After they are done; it asks whether they'd
          * like to do the maze again.
          */
-        final public void doMaze(){
+        public void doMaze(){
         char choice;
         do
         {
@@ -222,25 +224,24 @@ public class Main {
            */
         boolean startTheMaze()
         {
-            
-            int p = 0;
+            count = 0;
             Scanner console = new Scanner (System.in);
             System.out.println("Use the coordinates along the maze to choose where you want to start.");
             System.out.print("Row: ");
             row = getInt()-1;
             System.out.print("Col: ");
             col = getInt()-1;
-            boolean r = valid(row,col,p);
-            while (r==false)//Checks to see if starting point is valid
+            boolean startCheck = valid(row,col,count);
+            while (startCheck==false)//Checks to see if starting point is valid
             {
                 System.out.println("Sorry, that point is not open. Chose the point you want to start");
                 row = getInt()-1;
                 col = getInt()-1;
-                r = valid(row,col,p);
+                startCheck = valid(row,col,count);
             }
             
-            boolean f = solveMaze(row,col)==true;
-            return f;
+            boolean finishedSolving = solveMaze(row,col)==true;
+            return finishedSolving;
         }
         /**
          * Attempts to solve the maze from valid starting point. 
@@ -253,9 +254,9 @@ public class Main {
          */
         boolean solveMaze(int row, int col)
         {
-           int i = 1;
+           count++; // 
            boolean fin = false;
-            if(valid(row,col,i)){
+            if(valid(row,col,count)){
                 if (mazeLoc[row][col]=='E')
                 {
 
@@ -290,17 +291,17 @@ public class Main {
          * available spaces into plus signs.
          * @param row row
          * @param col column
-         * @param k Used to see if first point is available or not
+         * @param beganMaze Used to see if first point is available or not
          * @return found
          */
-        boolean valid(int row, int col,int k)
+        boolean valid(int row, int col,int beganMaze)
         {
             boolean found = false;
 
             if (row >= 0 && row < 30 && // checks bounds
               col >= 0 && col < 20)
             {
-                if(mazeLoc[row][col]=='0'&& k == 0) // checks to see if conditions are appropriate to make a start position; pushed to 
+                if(mazeLoc[row][col]=='0'&& beganMaze == 0) // checks to see if conditions are appropriate to make a start position; pushed to stack 
                 {
                     Location m = new Location (row,col);
                     path.push(m);
@@ -308,22 +309,21 @@ public class Main {
                     found = true;
 
                 }
-                else if (mazeLoc[row][col]=='S') //makes sure starting position ins;t turn into a +
+                else if (mazeLoc[row][col]=='S') //makes sure starting position doesn't turn into a +
                 {
-                     Location m = new Location (row,col);
                      found = true;
                 }
-                else if (mazeLoc[row][col]=='0' && k > 0) //subsequent positions are added to the stack
+                else if (mazeLoc[row][col]=='0' && beganMaze > 0) //subsequent positions are added to the stack
                 {
-                Location m = new Location (row,col);
-                path.push(m);
+                Location newPos = new Location (row,col);
+                path.push(newPos);
                 mazeLoc[row][col]='+';
                 found = true;
                 }
-                else if (mazeLoc[row][col]=='+') // if current location goes back; pop stack; turn to minus
+                else if (mazeLoc[row][col]=='+') // if current location goes back; pop linked list; turn location in maze to minus
                 {
-                Location n = (Location) path.peek();
-                mazeLoc[n.getRow()][n.getCol()]='-';
+                Location badPos = (Location) path.peek();
+                mazeLoc[badPos.getRow()][badPos.getCol()]='-';
                 path.pop();
                 mazeLoc[row][col]='-'; 
 
@@ -371,10 +371,10 @@ public class Main {
             * The negative signs represent a path already treaded.
             */
            void printSolvedMaze(){
-               for (int q = 0; q < 30; q++){
-            for (int a = 0; a < 20; a++){
-                if (mazeLoc[q][a]=='-')
-                    mazeLoc[q][a]='0';
+               for (int row = 0; row < 30; row++){
+            for (int col = 0; col < 20; col++){
+                if (mazeLoc[row][col]=='-')
+                    mazeLoc[row][col]='0';
             }
         }
                printMaze();
@@ -386,11 +386,11 @@ public class Main {
             * path  that's already treaded.
             */
            void printNegMaze(){
-               for (int q = 0; q < 30; q++){
-            for (int a = 0; a < 20; a++){
-                if (mazeLoc[q][a]=='-')
-                    mazeLoc[q][a]='+';
-            }
+            for (int row = 0; row < 30; row++){
+                for (int col = 0; col < 20; col++){
+                    if (mazeLoc[row][col]=='-')
+                        mazeLoc[row][col]='+';
+                }
         }
 
                printMaze();
@@ -401,19 +401,19 @@ public class Main {
             */
         public void printMaze()
         {
-            for (int f = 0; f <= 30; f++){ 
-            for (int g = 0; g <= 20; g++){
+        for (int row = 0; row <= 30; row++){ 
+            for (int col = 0; col <= 20; col++){
 
-                if (g == 0){
+                if (col == 0){
                     System.out.println();
                 }
 
-                if ((f == 0 && g >= 0) || (g == 0 && f >= 1))
+                if ((row == 0 && col >= 0) || (col == 0 && row >= 1))
                 {
-                    System.out.format("%4d", coordinates[f][g]);
+                    System.out.format("%4d", coordinates[row][col]);
                 }
-                else if (f > 0 && g > 0)
-                System.out.format("%4c", mazeLoc[f-1][g-1]);
+                else if (row > 0 && col > 0)
+                System.out.format("%4c", mazeLoc[row-1][col-1]);
             }
         }
         System.out.println();//Space between maze and restart question
